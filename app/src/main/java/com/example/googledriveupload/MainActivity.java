@@ -3,6 +3,8 @@ package com.example.googledriveupload;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -13,15 +15,13 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
@@ -32,10 +32,8 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import com.google.gson.annotations.SerializedName;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,9 +45,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnChooseFile;
     private static final int PICK_CSV_FROM_GALLERY_REQUEST_CODE = 100;
     private String filePath;
-//    private  String[] filepa;
     private List<String> filepa = new ArrayList<>();
     private List<String> fileName = new ArrayList<>();
+
+    private RecyclerView mRecyclerView;
+    private ItemAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private List<ItemData> itemcardData = new ArrayList<>();
+
+    boolean isCheck = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,24 +63,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnChooseFile = findViewById(R.id.btnChooseFile);
         btnChooseFile.setOnClickListener(this);
 
+        itemcardData.add(new ItemData("asdasd"));
+        BuildRecyclyerView();
         requestSignIn();
+
+
     }
 
 
 
     public void uploadFile(View view){
-        ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-        progressDialog.setTitle("Uploading to Google Drive");
-        progressDialog.setMessage("Please wait...");
-        progressDialog.show();
-
 //        String filePath = "/storage/emulated/0/acx1.csv";
 //        driveServiceHelper.createFile(filePath)
         int j = filepa.size();
+        if (j == 0){
+            Toast.makeText(this, "請選取資料", Toast.LENGTH_SHORT).show();
+        }else{
+            ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setTitle("Uploading to Google Drive");
+            progressDialog.setMessage("Please wait...");
+            progressDialog.show();
+
         for (int i =0;i<j;i++){
-           //沒資料時會一直繞圈
-        driveServiceHelper.fileName(fileName.get(i));
-        driveServiceHelper.createFile(filepa.get(i))
+//        driveServiceHelper.fileName(fileName.get(i));
+        driveServiceHelper.createFile(filepa.get(i),fileName.get(i))
                 .addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String s) {
@@ -92,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
+        }
         filepa.clear();
         fileName.clear();
 //        Log.d("aaa",""+fileName.size());
@@ -137,10 +148,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btnChooseFile:
                 chooseFile();
                 break;
+
+//            case R.id.rbtn:
+//                isCheck = !isCheck;
+////                radioButton.setChecked(isCheck);
+//////                if (isCheck)
+//                break;
+
              default:
                  break;
         }
     }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -181,6 +201,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String name = FileUtil.fileName(path);
             fileName.add(name);
             Log.d("asd",fileName.get(0));
+
+            itemcardData.add(new ItemData(name));
+            mAdapter.addItem(itemcardData);
+
+
             //設定檔案名稱
         }else  if (clipData != null){
             int count = clipData.getItemCount();
@@ -222,4 +247,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d("error","無可用的Activity");
         }
     }
+
+    public void BuildRecyclyerView(){
+        mRecyclerView = findViewById(R.id.recyclerviewFile);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this);
+        mAdapter = new ItemAdapter(MainActivity.this,itemcardData);
+
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+
 }
