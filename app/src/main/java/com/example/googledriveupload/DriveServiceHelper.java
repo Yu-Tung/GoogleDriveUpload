@@ -7,25 +7,27 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class DriveServiceHelper {
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
     private Drive mDriveService;
+//    private String name;
 
     public DriveServiceHelper(Drive driveService) {
         this.mDriveService = driveService;
     }
 
-    public Task<String> createFile(String filePath){
+    public Task<String> createFile(String filePath,String name){
         return Tasks.call(mExecutor,() ->{
             File fileMetaData = new File();
-            fileMetaData.setName("aaaa.pdf");
+            fileMetaData.setName(name);
 
             java.io.File file = new java.io.File(filePath);
 
-            FileContent mediaContent = new FileContent("application/pdf",file);
+            FileContent mediaContent = new FileContent("text/comma-separated-values",file);
 
             File myFile = null;
             try{
@@ -39,6 +41,11 @@ public class DriveServiceHelper {
             }
 
             return myFile.getId();
+
         });
     }
+
+//    public void fileName(String fileName){
+//        name = fileName;
+//    }
 }

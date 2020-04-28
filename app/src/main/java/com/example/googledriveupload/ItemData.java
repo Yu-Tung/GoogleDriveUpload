@@ -1,9 +1,9 @@
 package com.example.googledriveupload;
 
-public class ItemcardData {
+public class ItemData {
     private String tvItemname;
 
-    public ItemcardData(String tvItemname) {
+    public ItemData(String tvItemname) {
         this.tvItemname = tvItemname;
     }
 
