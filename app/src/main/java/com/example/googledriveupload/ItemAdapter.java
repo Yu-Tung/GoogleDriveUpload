@@ -14,26 +14,26 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder>  {
+public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder> {
 
     private Context context;
     private List<ItemData> mItemcardData = new ArrayList<>();
     boolean isCheck = false;
 
 
-    public ItemAdapter(Context context,List<ItemData> item) {
+    public ItemAdapter(Context context, List<ItemData> item) {
         this.context = context;
         mItemcardData.addAll(item);
     }
 
-    public void addItem(List<ItemData> list){
+    public void addItem(List<ItemData> list) {
         mItemcardData.clear();
         mItemcardData.addAll(list);
         notifyDataSetChanged();
     }
 
 
-    public static class ItemViewHolder extends RecyclerView.ViewHolder{
+    public static class ItemViewHolder extends RecyclerView.ViewHolder {
         public RadioButton mRadioButton;
         public TextView tvName;
 
@@ -50,7 +50,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_card,null);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_card, null);
         ItemViewHolder ivh = new ItemViewHolder(view);
         return ivh;
     }
@@ -66,8 +66,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
             public void onClick(View v) {
                 isCheck = !isCheck;
                 holder.mRadioButton.setChecked(isCheck);
-                if (isCheck){
-                    Log.d("qweqwe","Hiiii");
+                if (isCheck) {
+                    Log.d("qweqwe", "Hiiii");
+
+
                 }
             }
         });

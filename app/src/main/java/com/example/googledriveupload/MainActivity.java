@@ -230,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void chooseFile() {
         //https://www.jianshu.com/p/c1656748849f mimeType類型
         String mimeType = "text/comma-separated-values";
+//        String mimeType = "image/jpeg";
         PackageManager packageManager = MainActivity.this.getPackageManager();
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType(mimeType);
