@@ -45,12 +45,12 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation 'com.google.android.gms:play-services-auth:18.0.0'
-    implementation 'com.google.http-client:google-http-client-gson:1.26.0'
-    implementation ('com.google.api-client:google-api-client-android:1.26.0')
+    implementation 'com.google.http-client:google-http-client-gson:1.26.0'  //yes
+    implementation('com.google.api-client:google-api-client-android:1.26.0')  //yes
             {
                 exclude group: 'org.apache.httpcomponents'
             }
-    implementation ('com.google.apis:google-api-services-drive:v3-rev136-1.25.0')
+    implementation('com.google.apis:google-api-services-drive:v3-rev136-1.25.0')  //yes
             {
                 exclude group: 'org.apache.httpcomponents'
             }

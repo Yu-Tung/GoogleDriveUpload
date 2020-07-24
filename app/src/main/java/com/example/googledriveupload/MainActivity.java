@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ClipData;
@@ -18,21 +20,29 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.example.function.CompaeisonData;
+import com.example.function.CreateFolder;
+import com.example.function.SearchFIle;
+import com.example.net.LoginChecker;
+import com.example.net.base.BaseGoogleDrive;
+import com.example.permission.PermissionsActivity;
+import com.example.permission.PermissionsChecker;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
-import com.google.gson.annotations.SerializedName;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,9 +50,16 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    CompaeisonData mnewDrive;
+    CreateFolder createFolder;
+    SearchFIle searchFIle;
+
     DriveServiceHelper driveServiceHelper;
     private final static String BR=System.getProperty("line.separator");
     private Button btnChooseFile;
+    private Button btnJumpActivity;
+    private Button btnSearchFile;
+
     private static final int PICK_CSV_FROM_GALLERY_REQUEST_CODE = 100;
     private String filePath;
     private List<String> filepa = new ArrayList<>();
@@ -54,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<ItemData> itemcardData = new ArrayList<>();
 
     boolean isCheck = false;
+    private PermissionsChecker permissionsChecker;
+    private final static int ASK_PERMISSION_CODE = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,10 +81,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btnChooseFile = findViewById(R.id.btnChooseFile);
         btnChooseFile.setOnClickListener(this);
+        btnJumpActivity = findViewById(R.id.btnJumpActivity);
+        btnJumpActivity.setOnClickListener(this);
+        btnSearchFile = findViewById(R.id.btnSearchFile);
+        btnSearchFile.setOnClickListener(this);
 
         itemcardData.add(new ItemData("asdasd"));
         BuildRecyclyerView();
         requestSignIn();
+        permissionsChecker = new PermissionsChecker(this);
 
 
     }
@@ -111,8 +135,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void requestSignIn(){
         GoogleSignInOptions signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
+//                .requestId()
+//                .requestIdToken("501226046516-19p6m11sefn604ngarvn50q95fikpnfa.apps.googleusercontent.com")
+//                .requestScopes(new Scope(DriveScopes.DRIVE_FILE),
+//                        new Scope(DriveScopes.DRIVE_APPDATA)).
                 .requestScopes(new Scope(DriveScopes.DRIVE_FILE),
-                        new Scope(DriveScopes.DRIVE_APPDATA))
+                        new Scope(DriveScopes.DRIVE_APPDATA),
+                        new Scope(DriveScopes.DRIVE))
+//                .requestScopes(new Scopes(DriveScopes.))
+//                .requestScopes(new Scope(DriveScopes.all().toString()))
+
                 .build();
 
         GoogleSignInClient client = GoogleSignIn.getClient(this,signInOptions);
@@ -120,13 +152,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivityForResult(client.getSignInIntent(),400);
     }
 
+
+
+
+
     private void handleSignInIntent(Intent data) {
+        Log.d("data", "data:"+data);
         GoogleSignIn.getSignedInAccountFromIntent(data)
                 .addOnSuccessListener(googleSignInAccount -> {
                     GoogleAccountCredential credential = GoogleAccountCredential
+//                            .usingOAuth2(MainActivity.this, DriveScopes.a);
+
                             .usingOAuth2(MainActivity.this, Collections.singleton(DriveScopes.DRIVE_FILE));
 
                     credential.setSelectedAccount(googleSignInAccount.getAccount());
+
+
 
                     Drive googleDriveService =
                             new Drive.Builder(
@@ -137,6 +178,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     .build();
 
                     driveServiceHelper = new DriveServiceHelper(googleDriveService);
+                    Log.e("aaa", "handleSignInIntent: " +driveServiceHelper.toString() );
+
+                    mnewDrive = new CompaeisonData(googleDriveService);
+                    createFolder = new CreateFolder(googleDriveService);
+                    searchFIle = new SearchFIle(googleDriveService);
+//                    FileList result =null;
+//                    try {
+//                        result = googleDriveService.files().list()
+//                                .setQ("name='使用者帳號管理'")
+//                                .execute();
+//
+//                        Log.e("list",result.getFiles().get(0).getId());
+//                        InputStream inputStream = googleDriveService.files()
+//                                .export(result.getFiles().get(0).getId(),"text/csv")
+//                                .executeMediaAsInputStream();
+//
+//
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        Log.e("error",e.getMessage());
+//                    }
+
+
 
                 })
                 .addOnFailureListener(e -> e.printStackTrace());
@@ -149,6 +213,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 chooseFile();
                 break;
 
+            case R.id.btnJumpActivity:
+//                Intent intent = new Intent();
+//                intent.setClass(this, LookGoogleDriveActivity.class);
+//                startActivity(intent);
+                    test();
+//                createFolder.createFolder();
+//                onDataChange();
+//                    setEventCallBack();
+                break;
+
+            case R.id.btnSearchFile:
+                searchFIle.searFile();
+                break;
+
 //            case R.id.rbtn:
 //                isCheck = !isCheck;
 ////                radioButton.setChecked(isCheck);
@@ -159,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                  break;
         }
     }
+
 
 
 
@@ -190,6 +269,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
         super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == PermissionsActivity.PERMISSIONS_ACCEPT && requestCode == ASK_PERMISSION_CODE) {
+            LoginChecker loginChecker = new LoginChecker(MainActivity.this, setEventCallBack());
+            loginChecker.checkFile("5456");
+        }
+
+        if (resultCode == RESULT_OK && requestCode == BaseGoogleDrive.ASK_ACCOUNT) {
+            String account = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+            LoginChecker loginChecker = new LoginChecker(MainActivity.this, setEventCallBack());
+            if (account.equals(LoginChecker.ACCOUNT_NAME))
+                loginChecker.getCredential().setSelectedAccountName(account);
+            loginChecker.checkFile("5456");
+        }
     }
 
     private void catchFileInApp(Uri selectedCsv,ClipData clipData){
@@ -230,6 +322,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void chooseFile() {
         //https://www.jianshu.com/p/c1656748849f mimeType類型
         String mimeType = "text/comma-separated-values";
+//        String mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
 //        String mimeType = "image/jpeg";
         PackageManager packageManager = MainActivity.this.getPackageManager();
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -257,6 +351,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    private void test(){
+        boolean isSuccess = false;
+//        driveServiceHelper.searchFile();
+        mnewDrive.createFile();
+    }
+
+    public void onDataChange(){
+        final String[] permission = new String[]{
+                Manifest.permission.GET_ACCOUNTS
+        };
+
+
+        if (permissionsChecker.missingPermissions(permission)) {
+            PermissionsActivity.startPermissionsForResult(this, ASK_PERMISSION_CODE, permission);
+        } else {
+            LoginChecker loginChecker = new LoginChecker(MainActivity.this, setEventCallBack());
+            loginChecker.checkFile("liu0981654361@gmail.com");
+        }
+    }
+
+    private LoginChecker.eventCallBack setEventCallBack(){
+        return new LoginChecker.eventCallBack() {
+            @Override
+            public void onSuccessful(String account) {
+                Log.e("aaa","sdfsdf");
+            }
+
+            @Override
+            public void onFail() {
+                Toast.makeText(MainActivity.this,"登入失敗",Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void showProgress() {
+                Log.e("err","err");
+            }
+
+            @Override
+            public void hideProgress() {
+
+            }
+        };
     }
 
 
