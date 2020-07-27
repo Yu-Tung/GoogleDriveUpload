@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
@@ -36,6 +37,8 @@ public class DriveServiceHelper {
 
     public Task<String> createFile(String filePath,String name){
         return Tasks.call(mExecutor,() ->{
+            Log.e("file", filePath+","+name );
+
             File fileMetaData = new File();
             fileMetaData.setName(name);
 
